@@ -1,0 +1,24 @@
+{
+  "name": "ThreeJSBoilerPlates_L3DEMO",
+  "authors": [
+    "Ilmir Taychinov <riml@railgun-games.com>"
+  ],
+  "description": "ThreeJSBoilerPlates_L3DEMO for Advanced Graphics",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "http://github.com/Riml/ThreeJSBoilerPlates_L3DEMO",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "three.js": "threejs#*",
+    "dat-gui": "~0.5.1",
+    "stats.js": "*",
+    "threex.colliders": "*"
+  }
+}
