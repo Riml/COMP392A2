@@ -44,15 +44,17 @@ var cubes: Array<Mesh>;
 var plane: Mesh;
 var sphere: Mesh;
 var texture: Texture;
-var ambientLight: AmbientLight;
-var spotLight: SpotLight;
 var control: Control;
 var gui: GUI;
 var stats: Stats;
 var step: number = 0;
 var rotationDirection :number;
-
-
+var sphereGeometry : SphereGeometry;
+var sphereMaterial : LambertMaterial;
+var sunSurface : Mesh;
+var galaxy: Object3D;
+var sun : Object3D;
+var sunRadius:number;
 
 function init() {
     // Instantiate a new Scene object
@@ -62,30 +64,51 @@ function init() {
 	
     // add an axis helper to the scene
     axes = new AxisHelper(10);
-    scene.add(axes);
+    //scene.add(axes);
     console.log("Added Axis Helper to scene...");
-    texture= THREE.ImageUtils.loadTexture('Content/Textures/wood.jpg');
+   // texture= THREE.ImageUtils.loadTexture('Content/Textures/wood.jpg');
+    
+    //add Sun with lights
+    galaxy = new Object3D;
+    sun = new Object3D;
+    
+    sunRadius=0.5;
+    sphereGeometry = new SphereGeometry(sunRadius,25,25);
+    sphereMaterial= new LambertMaterial({color:0xbadbad});
+    sunSurface= new Mesh(sphereGeometry,sphereMaterial);
+    sunSurface.receiveShadow=false;
+    sunSurface.castShadow=false;
+    
+    addSunLight(0,0,1,sun);
+    addSunLight(0,0,-1,sun);
+    addSunLight(0,1,0,sun);
+    addSunLight(0,-1,0,sun);
+    addSunLight(1,0,0,sun);
+    addSunLight(-1,0,0,sun);
+    
+    sun.add(sunSurface);
+   
+    scene.add(sun);
+     // Add Lights to the scene
+    
+    
+    
+    addPlanet(-2.06,-1.87,1.29,0.17,galaxy);
+    addPlanet(0.20,1.9,-1.20,0.17,galaxy);
+    addPlanet(-0.2,1.4,3.45,0.17,galaxy);
+    addPlanet(-2.82,-1.20,-1.37,0.17,galaxy);
+   
+    scene.add(galaxy);
+  
+    
+    
+   
+    
+    
    
    
     
-    
-    // Add Lights to the scene
-    spotLight = new SpotLight(0xffffff);
-    spotLight.position.set(14, 40, 12);
-    spotLight.rotation.set(0,0,0);
-    spotLight.intensity=2;
-    spotLight.castShadow = true;
-    //make shadows more neat and a bit brighter
-    spotLight.shadowMapWidth = 1024;
-    spotLight.shadowMapHeight = 1024;
-    spotLight.shadowDarkness = 0.5;
-    spotLight.shadowCameraFar=1000;
-    spotLight.shadowCameraNear=0.1;
-    scene.add(spotLight);
-    
-    ambientLight = new AmbientLight(0x949494);
-    scene.add(ambientLight);
-    console.log("Added a AmbientLight and SpotLight Light to Scene");
+   
     
     // add controls
     gui = new GUI();
@@ -99,16 +122,29 @@ function init() {
     gameLoop(); // render the scene	
     window.addEventListener('resize', onResize, false);
 }
+function addSunLight(x:number,z:number,y:number,attachTo:Object3D):void{
+    var spotLight = new SpotLight(0xffffff);
+    spotLight.position.set(x*sunRadius*2+0.1, y*sunRadius*2+0.1, z*sunRadius*2+0.1);
+    spotLight.intensity=2;
+    spotLight.castShadow = true;
+    //make shadows more neat and a bit brighter
+    spotLight.shadowMapWidth = 1024;
+    spotLight.shadowMapHeight = 1024;
+    spotLight.shadowDarkness = 0.5;
+    spotLight.shadowCameraFar=1000;
+    spotLight.shadowCameraNear=0.1;
+    console.log("light attached to the sun as number"+attachTo.children.length);
+    attachTo.add(spotLight);
+}
 
-function addBodyPart(x:number,z:number,y:number,h:number,d:number,w:number,z_rotation:number,attachTo:Object3D):void{
-    /*cubeGeometry = new CubeGeometry(h*1.75,w*1.75,d*1.75);
-    var thisCube:Mesh = new Mesh(cubeGeometry,cubeMaterial);
-    thisCube.position.set(x,y,z);
-    thisCube.rotation.z=-z_rotation /180 * Math.PI;
-    thisCube.castShadow = true;
-    thisCube.receiveShadow = true;
-    attachTo.add(thisCube);
-    */
+function addPlanet(x:number,z:number,y:number,r:number,attachTo:Object3D):void{
+    sphereGeometry = new SphereGeometry(r);
+    var thisPlanet:Mesh = new Mesh(sphereGeometry,sphereMaterial);
+    thisPlanet.position.set(x,y,z);
+    thisPlanet.castShadow = true;
+    thisPlanet.receiveShadow = true;
+    attachTo.add(thisPlanet);
+    
  }
 
 function onResize(): void {
@@ -142,11 +178,16 @@ function gameLoop(): void {
     if(Math.abs(cubeHand.rotation.z) > 45/180 * Math.PI){
        rotationDirection=-rotationDirection;
      }
-    cubeMan.rotation.x+=control.xRotationSpeed;
+    galaxy.rotation.x+=control.xRotationSpeed;
     cubeMan.rotation.y+=control.yRotationSpeed;
     cubeMan.rotation.z+=control.zRotationSpeed;
     cubeMaterial.color.setStyle(control.newColor);
     */
+    
+    for(var i:number=0; i<galaxy.children.length; i++)
+    {
+        galaxy.children[i].rotation.y+=control.yRotationSpeed;
+    }
     // render using requestAnimationFrame
     requestAnimationFrame(gameLoop);
 	// render the scene
@@ -156,7 +197,7 @@ function gameLoop(): void {
 // Setup default renderer
 function setupRenderer(): void {
     renderer = new Renderer();
-    renderer.setClearColor(0xEEEEEE, 1.0);
+    renderer.setClearColor(0x555555, 1.0);
     renderer.setSize(window.innerWidth, window.innerHeight);
     //renderer.shadowMapEnabled = true;
     renderer.shadowMap.enabled=true;
@@ -167,9 +208,9 @@ function setupRenderer(): void {
 function setupCamera(): void {
    // camera = new PerspectiveCamera(45, myScreenConf.ration, 0.1, 1000);
     camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.x = 8.7;
-    camera.position.y = 20.47;//z
-    camera.position.z = 20.9;//y axis in blender
-    camera.lookAt(new Vector3(0, 5, 0));
+    camera.position.x = 4.7;
+    camera.position.y = 12.47;//z
+    camera.position.z = 12.9;//y axis in blender
+    camera.lookAt(new Vector3(0, 0, 0));
     console.log("Finished setting up Camera...");
 }
