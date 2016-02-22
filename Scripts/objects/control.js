@@ -4,8 +4,8 @@ var objects;
     // CONTROL CLASS ++++++++++++++++++++++++++++++++++++++++++
     var Control = (function () {
         // CONSTRUCTOR ++++++++++++++++++++++++++++++++++++++++
-        function Control(startHandRotation, startAxisRotation, color) {
-            this.handRotationSpeed = startHandRotation;
+        function Control(helperAxis, startAxisRotation, color) {
+            this.helperAxis = helperAxis;
             this.xRotationSpeed = startAxisRotation;
             this.yRotationSpeed = startAxisRotation;
             this.zRotationSpeed = startAxisRotation;
@@ -15,4 +15,5 @@ var objects;
     })();
     objects.Control = Control;
 })(objects || (objects = {}));
+
 //# sourceMappingURL=control.js.map

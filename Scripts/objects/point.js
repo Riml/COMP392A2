@@ -13,4 +13,5 @@ var objects;
     })();
     objects.Point = Point;
 })(objects || (objects = {}));
+
 //# sourceMappingURL=point.js.map

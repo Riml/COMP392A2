@@ -50,13 +50,15 @@ var stats: Stats;
 var step: number = 0;
 var rotationDirection :number;
 var sphereGeometry : SphereGeometry;
-var sphereMaterial : LambertMaterial;
+var sphereMaterial : PhongMaterial;
 var sunSurface : Mesh;
-var galaxy: Object3D;
+var planets: Object3D;
 var sun : Object3D;
 var sunRadius:number;
+var planetSpeeds:Array<number>;
 
 function init() {
+    
     // Instantiate a new Scene object
     scene = new Scene();
     setupRenderer(); // setup the default renderer
@@ -64,55 +66,41 @@ function init() {
 	
     // add an axis helper to the scene
     axes = new AxisHelper(10);
-    //scene.add(axes);
+    scene.add(axes);
     console.log("Added Axis Helper to scene...");
+    
    // texture= THREE.ImageUtils.loadTexture('Content/Textures/wood.jpg');
     
-    //add Sun with lights
-    galaxy = new Object3D;
+    //add Sun with lights//check perfomance issues
     sun = new Object3D;
-    
-    sunRadius=0.5;
+   
+    sunRadius=0.7;
     sphereGeometry = new SphereGeometry(sunRadius,25,25);
-    sphereMaterial= new LambertMaterial({color:0xbadbad});
+    sphereMaterial= new PhongMaterial({color:0xff7800});
+    sphereMaterial.emissive=new Color(0xff7800);
+    sphereMaterial.specular=new Color(0xff7800);
+    sphereMaterial.shininess=1;
     sunSurface= new Mesh(sphereGeometry,sphereMaterial);
     sunSurface.receiveShadow=false;
     sunSurface.castShadow=false;
+    sunSurface.position.set(0,0,0);
     
-    addSunLight(0,0,1,sun);
-    addSunLight(0,0,-1,sun);
-    addSunLight(0,1,0,sun);
-    addSunLight(0,-1,0,sun);
-    addSunLight(1,0,0,sun);
-    addSunLight(-1,0,0,sun);
-    
+    addSunLight(0,0,0,sun); 
     sun.add(sunSurface);
-   
     scene.add(sun);
-     // Add Lights to the scene
     
-    
-    
-    addPlanet(-2.06,-1.87,1.29,0.17,galaxy);
-    addPlanet(0.20,1.9,-1.20,0.17,galaxy);
-    addPlanet(-0.2,1.4,3.45,0.17,galaxy);
-    addPlanet(-2.82,-1.20,-1.37,0.17,galaxy);
-   
-    scene.add(galaxy);
+    // Add Planets to the scene with realted orbit speeds
+    planetSpeeds= [0.02, 0.021, 0.022,0.023];// values <0.05
+    planets = new Object3D;
+    addPlanet(1,0,1,0.17,planets,sun);
+    addPlanet(1.5,0,1.5,0.17,planets,sun);
+    addPlanet(2,0,2,0.17,planets,sun);
+    addMoonedPlanet(2.5,0,2.5,0.17,planets,sun);
+    scene.add(planets);
   
-    
-    
-   
-    
-    
-   
-   
-    
-   
-    
     // add controls
     gui = new GUI();
-    control= new Control(0.001,0.00,"#badbad");
+    control= new Control(true,0.00,"#badbad");
     addControl(control);
 
     // Add framerate stats
@@ -122,30 +110,55 @@ function init() {
     gameLoop(); // render the scene	
     window.addEventListener('resize', onResize, false);
 }
+
 function addSunLight(x:number,z:number,y:number,attachTo:Object3D):void{
-    var spotLight = new SpotLight(0xffffff);
-    spotLight.position.set(x*sunRadius*2+0.1, y*sunRadius*2+0.1, z*sunRadius*2+0.1);
-    spotLight.intensity=2;
-    spotLight.castShadow = true;
+    
+    var pointLight = new PointLight(0xffffff);
+    //pointLight.position.set(x*sunRadius*2+0.1, y*sunRadius*2+0.1, z*sunRadius*2+0.1);
+    pointLight.intensity=2;
+    pointLight.castShadow = true;
     //make shadows more neat and a bit brighter
-    spotLight.shadowMapWidth = 1024;
-    spotLight.shadowMapHeight = 1024;
-    spotLight.shadowDarkness = 0.5;
-    spotLight.shadowCameraFar=1000;
-    spotLight.shadowCameraNear=0.1;
+    pointLight.shadowMapWidth = 1024;
+    pointLight.shadowMapWidth = 1024;
+    pointLight.shadowMapHeight = 1024;
+    pointLight.shadowDarkness = 0.5;
+    pointLight.shadowCameraFar=1000;
+    pointLight.shadowCameraNear=0.1;
     console.log("light attached to the sun as number"+attachTo.children.length);
-    attachTo.add(spotLight);
+    attachTo.add(pointLight);
 }
 
-function addPlanet(x:number,z:number,y:number,r:number,attachTo:Object3D):void{
-    sphereGeometry = new SphereGeometry(r);
+function addPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:Object3D):void{
+    sphereGeometry = new SphereGeometry(r,15,15);
+    sphereMaterial = new PhongMaterial({color:0xbabdab});
     var thisPlanet:Mesh = new Mesh(sphereGeometry,sphereMaterial);
     thisPlanet.position.set(x,y,z);
     thisPlanet.castShadow = true;
     thisPlanet.receiveShadow = true;
-    attachTo.add(thisPlanet);
+    var planetPivot: Object3D = new Object3D;
+    planetPivot.add(thisPlanet)
+    planetPivot.position= center.position;
+    attachTo.add(planetPivot);
     
  }
+ 
+ 
+ function addMoonedPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:Object3D):void{
+    sphereGeometry = new SphereGeometry(r);
+    sphereMaterial = new PhongMaterial({color:0xbabdab});
+    var thisPlanet:Mesh = new Mesh(sphereGeometry,sphereMaterial);
+    thisPlanet.position.set(x,y,z);
+    thisPlanet.castShadow = true;
+    thisPlanet.receiveShadow = true;
+    var planetPivot: Object3D = new Object3D;
+    planetPivot.add(thisPlanet)
+    planetPivot.position=center.position;
+    //add moon similiar to planet for sun 
+    addPlanet(0.2,0,0.2,0.07,thisPlanet,thisPlanet);
+    attachTo.add(planetPivot);
+    
+ }
+
 
 function onResize(): void {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -154,7 +167,7 @@ function onResize(): void {
 }
 
 function addControl(controlObject: Control): void {
-    gui.add(controlObject, 'handRotationSpeed',-0.25,0.25);
+    gui.add(controlObject, 'helperAxis');
     gui.add(controlObject, 'xRotationSpeed',-0.25,0.25);
     gui.add(controlObject, 'yRotationSpeed',-0.25,0.25);
     gui.add(controlObject, 'zRotationSpeed',-0.25,0.25);
@@ -174,20 +187,19 @@ function addStatsObject() {
 function gameLoop(): void {
     stats.update();
     
-   /* cubeHand.rotation.z+=rotationDirection*control.handRotationSpeed;;
-    if(Math.abs(cubeHand.rotation.z) > 45/180 * Math.PI){
-       rotationDirection=-rotationDirection;
-     }
-    galaxy.rotation.x+=control.xRotationSpeed;
-    cubeMan.rotation.y+=control.yRotationSpeed;
-    cubeMan.rotation.z+=control.zRotationSpeed;
-    cubeMaterial.color.setStyle(control.newColor);
-    */
+    if(control.helperAxis)
+        axes.traverse( function ( object ) { object.visible = false; } );
+    else
+        axes.traverse( function ( object ) { object.visible = true; } );
+    for (var i = 0; i < planets.children.length; i++) {
+	      planets.children[i].rotation.y+=planetSpeeds[i];
+          for (var j = 0; j < planets.children[i].children.length; j++) {
+              if( planets.children[i].children!=null)
+	       planets.children[i].children[j].rotation.y+=0.025;
+        }
+   }
+   
     
-    for(var i:number=0; i<galaxy.children.length; i++)
-    {
-        galaxy.children[i].rotation.y+=control.yRotationSpeed;
-    }
     // render using requestAnimationFrame
     requestAnimationFrame(gameLoop);
 	// render the scene
@@ -199,14 +211,12 @@ function setupRenderer(): void {
     renderer = new Renderer();
     renderer.setClearColor(0x555555, 1.0);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    //renderer.shadowMapEnabled = true;
     renderer.shadowMap.enabled=true;
     console.log("Finished setting up Renderer...")
 }
 
 // Setup main camera for the scene
 function setupCamera(): void {
-   // camera = new PerspectiveCamera(45, myScreenConf.ration, 0.1, 1000);
     camera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.x = 4.7;
     camera.position.y = 12.47;//z

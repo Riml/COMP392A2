@@ -4,14 +4,14 @@ module objects {
     // CONTROL CLASS ++++++++++++++++++++++++++++++++++++++++++
     export class Control { 
         //PUBLIC INSTANCE VARIABLES +++++++++++++++++++++++++++
-        public handRotationSpeed:number;
+        public helperAxis:boolean;
         public xRotationSpeed:number;
         public yRotationSpeed:number;
         public zRotationSpeed:number;
         public newColor:string;
         // CONSTRUCTOR ++++++++++++++++++++++++++++++++++++++++
-        constructor(startHandRotation:number,startAxisRotation:number,color:string) {
-            this.handRotationSpeed = startHandRotation;
+        constructor(helperAxis:boolean,startAxisRotation:number,color:string) {
+            this.helperAxis = helperAxis;
             this.xRotationSpeed = startAxisRotation;
             this.yRotationSpeed = startAxisRotation;
             this.zRotationSpeed = startAxisRotation;
