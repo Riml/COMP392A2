@@ -23,4 +23,5 @@ var objects;
     })(THREE.Mesh);
     objects.gameObject = gameObject;
 })(objects || (objects = {}));
+
 //# sourceMappingURL=gameobject.js.map

@@ -210,4 +210,5 @@ function setupCamera() {
     cameras[0] = camera;
     console.log("Finished setting up Camera...");
 }
+
 //# sourceMappingURL=game.js.map
