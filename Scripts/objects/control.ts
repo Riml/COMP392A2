@@ -5,19 +5,26 @@ module objects {
     export class Control { 
         //PUBLIC INSTANCE VARIABLES +++++++++++++++++++++++++++
         public helperAxis:boolean;
-        public xRotationSpeed:number;
-        public yRotationSpeed:number;
-        public zRotationSpeed:number;
-        public newColor:string;
+        public cameras: Array<PerspectiveCamera>;
+        public perspective:number;
+        private currentSubject:number=0;
         // CONSTRUCTOR ++++++++++++++++++++++++++++++++++++++++
-        constructor(helperAxis:boolean,startAxisRotation:number,color:string) {
+        constructor(helperAxis:boolean,cameras: Array<PerspectiveCamera>,perspective:number) {
             this.helperAxis = helperAxis;
-            this.xRotationSpeed = startAxisRotation;
-            this.yRotationSpeed = startAxisRotation;
-            this.zRotationSpeed = startAxisRotation;
-            this.newColor = color;
+            this.cameras = cameras;
+            this.perspective = perspective;
+           
         }
        //PUBLIC METHODS +++++++++++++++++++++++++++++++++++++++
+       public changeSubject():void {
+           this.currentSubject++;
+           if(this.currentSubject==this.cameras.length)
+           {
+            this.currentSubject=0;   
+           }
+         currentCamera = cameras[this.currentSubject];
+         console.log("switch to camera " + this.currentSubject);
+       }
        
     }
 }

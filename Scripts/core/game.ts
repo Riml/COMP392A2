@@ -56,21 +56,27 @@ var planets: Object3D;
 var sun : Object3D;
 var sunRadius:number;
 var planetSpeeds:Array<number>;
+var cameras:Array<PerspectiveCamera>;
+var moonedCamera : PerspectiveCamera;
+var currentCamera : PerspectiveCamera;
+var textures : Array<Texture>;
 
 function init() {
     
     // Instantiate a new Scene object
     scene = new Scene();
     setupRenderer(); // setup the default renderer
-	setupCamera(); // setup the camera
-	
+    cameras = new Array;//will change the camera LookAt between this objects
+    setupCamera(); // setup the camera
+    currentCamera=cameras[0];
+    
     // add an axis helper to the scene
     axes = new AxisHelper(10);
     scene.add(axes);
     console.log("Added Axis Helper to scene...");
     
-   // texture= THREE.ImageUtils.loadTexture('Content/Textures/wood.jpg');
-    
+    textures= new Array;
+    textures[0]= THREE.ImageUtils.loadTexture('Content/Textures/sun.jpg');      
     //add Sun with lights//check perfomance issues
     sun = new Object3D;
    
@@ -84,6 +90,7 @@ function init() {
     sunSurface.receiveShadow=false;
     sunSurface.castShadow=false;
     sunSurface.position.set(0,0,0);
+   
     
     addSunLight(0,0,0,sun); 
     sun.add(sunSurface);
@@ -92,15 +99,15 @@ function init() {
     // Add Planets to the scene with realted orbit speeds
     planetSpeeds= [0.02, 0.021, 0.022,0.023];// values <0.05
     planets = new Object3D;
+    addMoonedPlanet(2.5,0,2.5,0.17,planets,sun);
     addPlanet(1,0,1,0.17,planets,sun);
     addPlanet(1.5,0,1.5,0.17,planets,sun);
     addPlanet(2,0,2,0.17,planets,sun);
-    addMoonedPlanet(2.5,0,2.5,0.17,planets,sun);
     scene.add(planets);
   
     // add controls
     gui = new GUI();
-    control= new Control(true,0.00,"#badbad");
+    control= new Control(true,cameras,1);
     addControl(control);
 
     // Add framerate stats
@@ -114,12 +121,12 @@ function init() {
 function addSunLight(x:number,z:number,y:number,attachTo:Object3D):void{
     
     var pointLight = new PointLight(0xffffff);
-    //pointLight.position.set(x*sunRadius*2+0.1, y*sunRadius*2+0.1, z*sunRadius*2+0.1);
+    pointLight.position.set(0,0,0);
     pointLight.intensity=2;
     pointLight.castShadow = true;
     //make shadows more neat and a bit brighter
     pointLight.shadowMapWidth = 1024;
-    pointLight.shadowMapWidth = 1024;
+    pointLight.shadowMapHeight = 1024;
     pointLight.shadowMapHeight = 1024;
     pointLight.shadowDarkness = 0.5;
     pointLight.shadowCameraFar=1000;
@@ -129,9 +136,9 @@ function addSunLight(x:number,z:number,y:number,attachTo:Object3D):void{
 }
 
 function addPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:Object3D):void{
-    sphereGeometry = new SphereGeometry(r,15,15);
-    sphereMaterial = new PhongMaterial({color:0xbabdab});
-    var thisPlanet:Mesh = new Mesh(sphereGeometry,sphereMaterial);
+    sphereGeometry = new SphereGeometry(r,20,20);
+    var sphericMaterial = new LambertMaterial({color:0xffFFff});
+    var thisPlanet:Mesh = new Mesh(sphereGeometry,sphericMaterial);
     thisPlanet.position.set(x,y,z);
     thisPlanet.castShadow = true;
     thisPlanet.receiveShadow = true;
@@ -144,7 +151,7 @@ function addPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:
  
  
  function addMoonedPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:Object3D):void{
-    sphereGeometry = new SphereGeometry(r);
+    sphereGeometry = new SphereGeometry(r,20,20);
     sphereMaterial = new PhongMaterial({color:0xbabdab});
     var thisPlanet:Mesh = new Mesh(sphereGeometry,sphereMaterial);
     thisPlanet.position.set(x,y,z);
@@ -154,24 +161,31 @@ function addPlanet(x:number,y:number,z:number,r:number,attachTo:Object3D,center:
     planetPivot.add(thisPlanet)
     planetPivot.position=center.position;
     //add moon similiar to planet for sun 
-    addPlanet(0.2,0,0.2,0.07,thisPlanet,thisPlanet);
+     addPlanet(0.2,0,0.2,0.07,thisPlanet,thisPlanet);
     attachTo.add(planetPivot);
+    //add camera 
+    moonedCamera = new PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    moonedCamera.position.set(x+1,y+1,z+1);
+    moonedCamera.lookAt(planetPivot.position);
+    thisPlanet.add(moonedCamera);
+    cameras[1]=moonedCamera;
+    
     
  }
 
 
 function onResize(): void {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
+    currentCamera.aspect = window.innerWidth / window.innerHeight;
+    currentCamera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function addControl(controlObject: Control): void {
     gui.add(controlObject, 'helperAxis');
-    gui.add(controlObject, 'xRotationSpeed',-0.25,0.25);
-    gui.add(controlObject, 'yRotationSpeed',-0.25,0.25);
-    gui.add(controlObject, 'zRotationSpeed',-0.25,0.25);
-    gui.addColor(controlObject, 'newColor');
+    gui.add(controlObject, 'changeSubject');
+    gui.add(controlObject, 'perspective',0,5);
+  
+    
 }
 
 function addStatsObject() {
@@ -195,15 +209,20 @@ function gameLoop(): void {
 	      planets.children[i].rotation.y+=planetSpeeds[i];
           for (var j = 0; j < planets.children[i].children.length; j++) {
               if( planets.children[i].children!=null)
-	       planets.children[i].children[j].rotation.y+=0.025;
+	       planets.children[i].children[j].rotation.y+=0.035;
         }
    }
+   if(control.perspective!=camera.zoom){
+    currentCamera.zoom=control.perspective;
+    currentCamera.updateProjectionMatrix();
+   }
+   
    
     
     // render using requestAnimationFrame
     requestAnimationFrame(gameLoop);
 	// render the scene
-    renderer.render(scene, camera);
+    renderer.render(scene, currentCamera);
 }
 
 // Setup default renderer
@@ -222,5 +241,6 @@ function setupCamera(): void {
     camera.position.y = 12.47;//z
     camera.position.z = 12.9;//y axis in blender
     camera.lookAt(new Vector3(0, 0, 0));
+    cameras[0]=camera;
     console.log("Finished setting up Camera...");
 }
