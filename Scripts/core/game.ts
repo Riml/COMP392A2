@@ -3,7 +3,7 @@
 // MAIN GAME FILE
 /* Ilmir Taychinovs study project for Advanced Graphic course
 centennial college W2016
-last modified: Feb 5,2016
+last modified: Feb 26,2016
 */
 // THREEJS Aliases
 import Scene = THREE.Scene;
