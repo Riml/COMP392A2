@@ -4,14 +4,14 @@ var objects;
     // CONTROL CLASS ++++++++++++++++++++++++++++++++++++++++++
     var Control = (function () {
         // CONSTRUCTOR ++++++++++++++++++++++++++++++++++++++++
-        function Control(helperAxis, cameras, perspective) {
+        function Control(helperAxis, cameras, zoom) {
             this.currentSubject = 0;
             this.helperAxis = helperAxis;
             this.cameras = cameras;
-            this.perspective = perspective;
+            this.zoom = zoom;
         }
         //PUBLIC METHODS +++++++++++++++++++++++++++++++++++++++
-        Control.prototype.changeSubject = function () {
+        Control.prototype.ChangeCamera = function () {
             this.currentSubject++;
             if (this.currentSubject == this.cameras.length) {
                 this.currentSubject = 0;

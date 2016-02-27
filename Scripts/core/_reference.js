@@ -2,6 +2,7 @@
 /// <reference path="../config/screen.ts"/>
 /// <reference path="../objects/point.ts"/>
 /// <reference path="../objects/control.ts" />
-/// <reference path="../objects/gameobject.ts"/> 
+/// <reference path="../objects/gameobject.ts"/>
+// /// <reference path="../objects/GPUParticleSystem.js"/> 
 
 //# sourceMappingURL=_reference.js.map

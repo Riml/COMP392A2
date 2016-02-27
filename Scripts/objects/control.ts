@@ -6,17 +6,17 @@ module objects {
         //PUBLIC INSTANCE VARIABLES +++++++++++++++++++++++++++
         public helperAxis:boolean;
         public cameras: Array<PerspectiveCamera>;
-        public perspective:number;
+        public zoom:number;
         private currentSubject:number=0;
         // CONSTRUCTOR ++++++++++++++++++++++++++++++++++++++++
-        constructor(helperAxis:boolean,cameras: Array<PerspectiveCamera>,perspective:number) {
+        constructor(helperAxis:boolean,cameras: Array<PerspectiveCamera>,zoom:number) {
             this.helperAxis = helperAxis;
             this.cameras = cameras;
-            this.perspective = perspective;
+            this.zoom = zoom;
            
         }
        //PUBLIC METHODS +++++++++++++++++++++++++++++++++++++++
-       public changeSubject():void {
+       public ChangeCamera():void {
            this.currentSubject++;
            if(this.currentSubject==this.cameras.length)
            {
